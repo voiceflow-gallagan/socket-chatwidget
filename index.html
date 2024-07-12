@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Widget Switcher</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
+</head>
+<body>
+    <!-- Voiceflow Chat Widget -->
+    <script type="text/javascript">
+    // Generate a unique user ID
+    const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+    console.log(userId);
+
+        (function(d, t) {
+            var v = d.createElement(t), s = d.getElementsByTagName(t)[0];
+            v.onload = function() {
+                window.voiceflow.chat.load({
+                    verify: { projectID: '64e3b233a86fcb00076341bb' },
+                    url: 'https://general-runtime.voiceflow.com',
+                    versionID: 'development',
+                    userID: userId
+                });
+            }
+            v.src = "https://cdn.voiceflow.com/widget/bundle.mjs"; v.type = "text/javascript"; s.parentNode.insertBefore(v, s);
+        })(document, 'script');
+    </script>
+
+    <!-- Zendesk Chat Widget -->
+    <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=e4114602-2344-477f-af1c-4e9e1c479edc"> </script>
+    <script>
+        // Wait for Zendesk to load, then hide it
+        window.zESettings = {
+            webWidget: {
+                chat: {
+                    suppress: true
+                },
+                launcher: {
+                    chatLabel: {
+                        '*': 'Chat is currently unavailable'
+                    }
+                }
+            }
+        };
+
+        // Ensure the widget is hidden after it's fully loaded
+        window.zEmbed || function(e, t) {
+            var n, o, d, i, s, a = [], r = document.createElement("iframe");
+            window.zEmbed = function() {
+                a.push(arguments)
+            }, window.zE = window.zE || window.zEmbed, r.src = "javascript:false", r.title = "", r.role = "presentation", (r.frameElement || r).style.cssText = "display: none", d = document.getElementsByTagName("script"), d = d[d.length - 1], d.parentNode.insertBefore(r, d), i = r.contentWindow, s = i.document;
+            try {
+                o = s
+            } catch (c) {
+                n = document.domain, r.src = 'javascript:var d=document.open();d.domain="' + n + '";void(0);', o = s
+            }
+            o.open()._l = function() {
+                var e = this.createElement("script");
+                n && (this.domain = n), e.id = "js-iframe-async", e.src = "https://assets.zendesk.com/embeddable_framework/main.js", this.t = +new Date, this.zendeskHost = "yoursubdomain.zendesk.com", this.zEQueue = a, this.body.appendChild(e)
+            }, o.write('<body onload="document._l();">'), o.close()
+        }();
+
+        // Hide the widget after it's loaded
+        zE('messenger', 'hide');
+    </script>
+
+    <!-- Chat Widget Switching -->
+    <script>
+        // Function to switch from Voiceflow to Zendesk
+        function switchToZendesk() {
+            window.voiceflow.chat.hide();
+            if (window.zE) {
+                window.zE('messenger', 'show');
+                window.zE('messenger', 'open');
+            }
+        }
+
+        // Function to switch from Zendesk to Voiceflow
+        function switchToVoiceflow() {
+            if (window.zE) {
+                window.zE('messenger', 'hide');
+            }
+            window.voiceflow.chat.show();
+            window.voiceflow.chat.open();
+        }
+
+        // Set up socket connection
+        const socket = io('https://ec0b-90-26-55-172.ngrok-free.app');
+
+        // Register the user with the server
+        socket.emit('register', userId);
+
+        // Listen for the trigger event
+        socket.on('trigger_zd', function() {
+            console.log('Triggering Zendesk');
+            switchToZendesk();
+        });
+
+        socket.on('trigger_vf', function() {
+        console.log('Triggering Voiceflow');
+            switchToVoiceflow();
+        });
+    </script>
+</body>
+</html>
